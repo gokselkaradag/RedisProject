@@ -25,7 +25,14 @@ builder.Services.AddSingleton<RedisService>(sp =>
 });*/
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductRepository>(sp =>
+{
+    var dbContext = sp.GetRequiredService<DataContext>();
+    var productRepository = new ProductRepository(dbContext);
+    var redisService = sp.GetRequiredService<RedisService>();
+    
+    return new ProductRepositoryWithCacheDecorator(productRepository, redisService);
+});
 
 // Swagger servisini ekle
 builder.Services.AddEndpointsApiExplorer();
